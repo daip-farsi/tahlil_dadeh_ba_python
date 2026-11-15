@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Analytics in Python | تحلیل داده با پایتون</title>
+<meta name="description" content="A 12-week study site for Data Analytics in Python: lecture notes, live Python cells, quizzes and practice exercises.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&family=Vazirmatn:wght@600;800&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: a 12-week course notebook. Left rail = course brand, week picker and this week's topics.
+   Right = the week's lesson as notebook cells that run real Python in the browser, sharing one kernel.
+   Python blue is the ink, Python yellow is the highlighter. */
+:root {
+  --paper: #F3F5F8; --surface: #FFFFFF; --ink: #142033; --muted: #5A6577; --line: #DCE2EA;
+  --blue: #2F6BB0; --yellow: #FFD43B; --yellow-soft: #FFF4C4; --code-bg: #F7F9FC; --out-bg: #FBFCFE;
+  --good: #1E8A55; --bad: #C2402F; --bad-soft: #FDEDEA; --good-soft: #E7F6EE;
+  --k: #8E44AD; --s: #1E8A55; --n: #C26A00;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --fa: "Vazirmatn", Tahoma, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0F1622; --surface: #161F2E; --ink: #E6ECF4; --muted: #96A2B4; --line: #26324A;
+    --blue: #7FB0EA; --yellow-soft: #3A3315; --code-bg: #111A28; --out-bg: #131D2C;
+    --good: #5FCB94; --bad: #FF8A78; --bad-soft: #3A1E1B; --good-soft: #15301F;
+    --k: #C99BF0; --s: #8FD9A8; --n: #F2B36B; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0F1622; --surface: #161F2E; --ink: #E6ECF4; --muted: #96A2B4; --line: #26324A;
+  --blue: #7FB0EA; --yellow-soft: #3A3315; --code-bg: #111A28; --out-bg: #131D2C;
+  --good: #5FCB94; --bad: #FF8A78; --bad-soft: #3A1E1B; --good-soft: #15301F;
+  --k: #C99BF0; --s: #8FD9A8; --n: #F2B36B; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--paper); color: var(--ink); font: 16px/1.6 var(--body); }
+a { color: var(--blue); }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 4px; }
+code, pre, textarea { font-family: var(--mono); }
+:not(pre) > code { font-size: .88em; background: var(--code-bg); border: 1px solid var(--line); padding: .05em .35em; border-radius: 4px; }
+[lang="fa"] { font-family: var(--fa); }
+
+.shell { display: grid; grid-template-columns: 270px minmax(0, 1fr); gap: 40px; max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+/* Rail */
+.rail { position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto; padding: 26px 4px 24px 0; }
+.brand { font: 800 1.2rem/1.15 var(--display); letter-spacing: -.01em; margin: 0; color: var(--ink); text-decoration: none; display: block; }
+.brand span, .brand-fa span { color: var(--blue); }
+.brand-fa { font: 800 1.2rem/1.5 var(--fa); margin: 2px 0 2px; isolation: isolate; text-align: left; }
+.brand-fa span { position: relative; }
+.brand-fa span::after { content: ""; position: absolute; left: 0; right: 0; bottom: .2em; height: .22em; background: var(--yellow); z-index: -1; border-radius: 2px; }
+.brand-sub { color: var(--muted); font-size: .82rem; margin: 0 0 18px; }
+.rail h3 { font: 600 .72rem var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 18px 0 8px; }
+.weeks { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; }
+.weeks a { display: grid; place-items: center; height: 34px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); font: 600 .8rem var(--mono); text-decoration: none; font-variant-numeric: tabular-nums; }
+.weeks a.ready { color: var(--ink); border-color: var(--blue); }
+.weeks a.current { background: var(--blue); border-color: var(--blue); color: #fff; }
+.weeks a.locked { border-style: dashed; }
+.progress { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-top: 14px; }
+.progress-top { display: flex; justify-content: space-between; font-size: .82rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.bar { height: 7px; background: var(--line); border-radius: 99px; margin-top: 7px; overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--blue); border-radius: 99px; transition: width .4s ease; }
+.toc { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
+.toc a { display: grid; grid-template-columns: 26px 1fr 14px; align-items: center; gap: 6px; padding: 5px 8px; border-radius: 8px; color: var(--ink); text-decoration: none; font-size: .88rem; line-height: 1.35; }
+.toc a:hover { background: var(--surface); }
+.toc .n { font: 500 .72rem var(--mono); color: var(--muted); }
+.toc .tick { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--line); }
+.toc a.done .tick { background: var(--good); border-color: var(--good); }
+.toc .sep { height: 1px; background: var(--line); margin: 6px 0; }
+
+/* Main */
+main { padding: 26px 0 80px; min-width: 0; }
+.hero { padding: 22px 0 10px; }
+.eyebrow { font: 500 .78rem var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin: 0 0 10px; }
+.hero h1 { font: 800 clamp(2.2rem, 5.2vw, 3.8rem)/1.02 var(--display); letter-spacing: -.03em; margin: 0 0 14px; text-wrap: balance; }
+.hl { position: relative; white-space: nowrap; isolation: isolate; }
+.hl::after { content: ""; position: absolute; left: -2%; right: -2%; bottom: .06em; height: .28em; background: var(--yellow); z-index: -1; border-radius: 3px; transform-origin: left; animation: swipe .9s .2s cubic-bezier(.6,.1,.2,1) both; }
+@keyframes swipe { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.lede { font-size: 1.08rem; color: var(--muted); max-width: 64ch; margin: 0 0 18px; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.chip { font: 500 .78rem var(--mono); padding: 4px 10px; border-radius: 99px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); }
+.chip.hot { background: var(--yellow-soft); border-color: transparent; color: var(--ink); }
+
+.kernelbar { position: sticky; top: 0; z-index: 4; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; background: color-mix(in srgb, var(--paper) 92%, transparent); backdrop-filter: blur(6px); border: 1px solid var(--line); border-radius: 12px; padding: 9px 12px; margin: 6px 0 4px; font-size: .86rem; }
+.kstat { display: inline-flex; align-items: center; gap: 8px; font: 500 .8rem var(--mono); }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
+.kstat[data-s="loading"] .dot { background: var(--yellow); animation: pulse 1s infinite alternate; }
+.kstat[data-s="ready"] .dot { background: var(--good); }
+.kstat[data-s="busy"] .dot { background: var(--blue); animation: pulse .5s infinite alternate; }
+.kstat[data-s="failed"] .dot { background: var(--bad); }
+@keyframes pulse { to { opacity: .35; } }
+.khelp { color: var(--muted); flex: 1 1 260px; }
+.kbtn { font: 600 .8rem var(--body); background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 7px; padding: 5px 10px; cursor: pointer; }
+.kbtn:hover { border-color: var(--ink); }
+
+/* Cells */
+.cell { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 0 10px; margin: 14px 0; }
+.cell-label { grid-column: 2; font: 500 .72rem var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+.prompt { font: 500 .78rem/1 var(--mono); color: var(--blue); text-align: right; padding-top: 14px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.prompt.outp { color: var(--bad); }
+.code { position: relative; background: var(--code-bg); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.code:focus-within { border-color: var(--blue); }
+.editor { position: relative; }
+.editor pre, .editor textarea { margin: 0; padding: 12px 92px 12px 14px; font: .87rem/1.6 var(--mono); white-space: pre; tab-size: 4; letter-spacing: 0; word-spacing: 0; border: 0; }
+.editor pre { position: absolute; inset: 0; overflow: hidden; pointer-events: none; color: var(--ink); }
+.editor textarea { position: relative; display: block; width: 100%; resize: none; overflow-x: auto; overflow-y: hidden; background: transparent; color: transparent; caret-color: var(--ink); outline: none; }
+.editor textarea::selection { background: rgba(47,107,176,.25); }
+.cell-tools { position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; z-index: 2; }
+.run { display: inline-flex; align-items: center; gap: 6px; font: 600 .78rem var(--body); background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 7px; padding: 5px 10px; cursor: pointer; }
+.run:hover { border-color: var(--blue); color: var(--blue); }
+.run svg { width: 9px; height: 9px; fill: currentColor; }
+.reset { font: 500 .74rem var(--body); background: none; border: 0; color: var(--muted); cursor: pointer; padding: 5px 4px; text-decoration: underline; }
+.reset[hidden] { display: none; }
+.out-row { display: contents; }
+.out-row[hidden] { display: none; }
+.output { grid-column: 2; background: var(--out-bg); border: 1px dashed var(--line); border-radius: 10px; margin-top: 6px; padding: 9px 14px; font: .85rem/1.55 var(--mono); white-space: pre-wrap; overflow-x: auto; }
+.output .err { color: var(--bad); display: block; }
+.output .empty, .output .note { color: var(--muted); font-style: italic; font-family: var(--body); font-size: .82rem; }
+.output span { display: block; }
+.tok-k { color: var(--k); } .tok-s { color: var(--s); } .tok-c { color: var(--muted); font-style: italic; } .tok-n { color: var(--n); } .tok-f { color: var(--blue); }
+
+/* Sections */
+section.topic { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 26px 28px 22px; margin: 22px 0; scroll-margin-top: 70px; }
+.topic-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 4px; }
+.topic-num { font: 500 .85rem var(--mono); color: var(--blue); white-space: nowrap; }
+section h2 { font: 700 1.6rem/1.15 var(--display); letter-spacing: -.015em; margin: 0; text-wrap: balance; }
+.summary { font-size: 1.04rem; margin: 8px 0 12px; max-width: 66ch; }
+section ul { padding-left: 1.2em; margin: 8px 0; max-width: 70ch; }
+section li { margin: 4px 0; }
+.tbl { overflow-x: auto; margin: 14px 0; }
+.tbl table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+.tbl caption { text-align: left; font: 600 .78rem var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .05em; padding-bottom: 6px; }
+.tbl th, .tbl td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tbl th { font-weight: 600; background: var(--paper); }
+.tbl td:first-child { white-space: nowrap; }
+.callout { display: grid; grid-template-columns: auto 1fr; gap: 10px; border-radius: 10px; padding: 12px 14px; margin: 14px 0 6px; font-size: .94rem; }
+.callout .tag { font: 600 .7rem var(--mono); text-transform: uppercase; letter-spacing: .06em; padding: 3px 7px; border-radius: 5px; height: fit-content; white-space: nowrap; }
+.callout.trap { background: var(--bad-soft); } .callout.trap .tag { background: var(--bad); color: #fff; }
+.callout.data { background: var(--yellow-soft); } .callout.data .tag { background: var(--ink); color: var(--paper); }
+.callout.note { background: var(--paper); } .callout.note .tag { background: var(--blue); color: #fff; }
+.topic-foot { display: flex; justify-content: flex-end; margin-top: 14px; }
+.learn { font: 600 .85rem var(--body); border: 1.5px solid var(--line); background: transparent; color: var(--ink); border-radius: 99px; padding: 7px 14px; cursor: pointer; }
+.learn:hover { border-color: var(--good); }
+.learn[aria-pressed="true"] { background: var(--good); border-color: var(--good); color: #fff; }
+
+/* Quiz */
+.q { border-top: 1px solid var(--line); padding: 16px 0 6px; }
+.q:first-child { border-top: 0; }
+.q p.qt { margin: 0 0 10px; font-weight: 600; }
+.opts { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+.opt { text-align: left; font: .92rem var(--body); background: var(--paper); color: var(--ink); border: 1.5px solid var(--line); border-radius: 9px; padding: 9px 12px; cursor: pointer; }
+.opt:hover:not(:disabled) { border-color: var(--blue); }
+.opt.right { border-color: var(--good); background: var(--good-soft); }
+.opt.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.opt:disabled { cursor: default; }
+.why { font-size: .9rem; color: var(--muted); margin: 8px 0 4px; }
+.score { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; background: var(--paper); border-radius: 12px; padding: 12px 16px; margin: 12px 0 4px; font-variant-numeric: tabular-nums; }
+.score strong { font: 800 1.6rem var(--display); }
+.btn { font: 600 .85rem var(--body); background: var(--ink); color: var(--paper); border: 0; border-radius: 8px; padding: 8px 14px; cursor: pointer; }
+
+details.ex { border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; margin: 10px 0; background: var(--paper); }
+details.ex summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; gap: 10px; align-items: baseline; }
+details.ex summary::-webkit-details-marker { display: none; }
+details.ex summary::before { content: "+"; font: 600 1rem var(--mono); color: var(--blue); width: 1ch; }
+details.ex[open] summary::before { content: "\2212"; }
+.ex-level { margin-left: auto; font: 500 .72rem var(--mono); color: var(--muted); white-space: nowrap; }
+.ex-body { padding: 6px 0 4px 22px; }
+.ex-body .cell { grid-template-columns: 0 minmax(0,1fr); gap: 0; }
+.ex-body .prompt { display: none; }
+.reveal { font: 600 .8rem var(--body); background: var(--surface); border: 1px solid var(--line); color: var(--ink); border-radius: 7px; padding: 5px 10px; cursor: pointer; margin-right: 6px; }
+
+.checklist { list-style: none; padding: 0; margin: 8px 0; display: grid; gap: 4px; max-width: none; }
+.checklist label { display: grid; grid-template-columns: 22px 44px 1fr; gap: 6px; align-items: baseline; padding: 7px 10px; border-radius: 8px; cursor: pointer; }
+.checklist label:hover { background: var(--paper); }
+.checklist input { accent-color: var(--good); width: 16px; height: 16px; }
+.checklist .qn { font: 600 .8rem var(--mono); color: var(--blue); }
+.checklist input:checked ~ span:last-child { color: var(--muted); text-decoration: line-through; }
+
+.plan { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; margin-top: 12px; }
+.plan a { display: block; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: var(--paper); color: var(--ink); text-decoration: none; min-height: 92px; }
+.plan a.ready { border-color: var(--blue); background: var(--surface); }
+.plan a.locked { border-style: dashed; color: var(--muted); }
+.plan b { font: 700 .95rem var(--display); display: block; margin: 2px 0 4px; color: var(--ink); }
+.plan .wk { font: 500 .72rem var(--mono); color: var(--blue); }
+.plan span.s { font-size: .82rem; }
+.placeholder { text-align: left; }
+footer { color: var(--muted); font-size: .85rem; margin-top: 28px; }
+
+@media (max-width: 880px) {
+  .shell { grid-template-columns: 1fr; gap: 0; padding: 0 16px; }
+  .rail { position: static; height: auto; padding: 16px 0 6px; }
+  .toc, .rail .toc-h, .progress { display: none; }
+  .weeks { grid-template-columns: repeat(12, minmax(32px, 1fr)); overflow-x: auto; }
+  section.topic { padding: 20px 16px; }
+  .cell { grid-template-columns: 1fr; }
+  .cell-label, .output { grid-column: 1; }
+  .prompt { text-align: left; padding: 0 0 4px; }
+  .prompt.outp { padding-top: 6px; }
+}
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="rail" aria-label="Course navigation">
+    <a class="brand" href="#week-1">Data Analytics <span>in Python</span></a>
+    <p class="brand-fa" lang="fa" dir="rtl">تحلیل داده با <span>پایتون</span></p>
+    <p class="brand-sub">12-week study site · AS-2025</p>
+    <h3>Weeks</h3>
+    <nav class="weeks" id="weeks" aria-label="Weeks"></nav>
+    <div class="progress" aria-live="polite">
+      <div class="progress-top"><span id="progLabel">Week 1 topics learned</span><span id="progText">0 / 10</span></div>
+      <div class="bar"><i id="progBar"></i></div>
+    </div>
+    <h3 class="toc-h">This week</h3>
+    <nav aria-label="This week's topics"><ul class="toc" id="toc"></ul></nav>
+  </aside>
+  <main id="view"></main>
+</div>
+
+<script id="course-data" type="application/json">{"topics": [{"id": "tips", "title": "Tips before you start", "summary": "The fastest way to learn is to type every line yourself and get fluent with the keyboard.", "bullets": ["<b>Never copy and paste the code.<\/b> Retype it, delete it, then type it again from memory. That's why this site has no copy buttons, and why every cell here is editable.", "Put in the effort during the first two weeks. The more you invest in getting to know Python now, the less you'll need for the rest of the course.", "Watching the instructor type answers quickly shows you the gap between beginner and expert. Copy the habits, not the code.", "Speed matters. Learn keyboard shortcuts: one key instead of the mouse saves only a second, but you'll do it hundreds of times per lecture.", "Learn to touch-type. Five minutes a day for a few weeks builds the muscle memory. The instructor recommends <a href=\"https://www.typingclub.com/\">TypingClub<\/a>.", "Try the US (en_US) keyboard layout and a Compose key: programming symbols like <code>[ ]<\/code> and <code>`<\/code> become single key presses."], "cells": [{"label": "Data example", "code": "price = \"10\"\nprint(type(price))\nprint(int(price) + 5)", "saved": {"stdout": "<class 'str'>\n15\n", "value": null, "error": null}}], "data": "Data from files often arrives as text. Checking <code>type()<\/code> is the first thing to do when a calculation behaves strangely."}, {"id": "jupyter", "title": "Jupyter notebooks", "summary": "A notebook has two parts: the editor, a web page of independent cells, and the kernel, which runs them and remembers the results.", "bullets": ["Running a cell sends it to the kernel, which runs a <b>REPL<\/b>: Read, Eval, Print Loop.", "The kernel remembers everything until you restart it, in the order you <b>ran<\/b> cells, not the order on the page.", "Edit a cell with a double click or Enter. Run it with <b>Shift + Enter<\/b>.", "The last value in a code cell is shown as output. No output means the last value was <code>None<\/code>.", "Text cells use <a href=\"https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet\">Markdown<\/a> and can include LaTeX for maths. Double-click the instructor's text cells to see how they're formatted."], "tables": [{"caption": "Keyboard shortcuts (press Esc first for command mode)", "head": ["Keys", "What it does"], "rows": [["Shift + Enter", "Run the cell and move to the next one"], ["Ctrl + Enter", "Run the cell and stay on it"], ["A / B", "Insert a cell above / below"], ["M / Y", "Turn the cell into Markdown / code"], ["D, D", "Delete the cell"], ["Z", "Undo a cell deletion"], ["0, 0", "Restart the kernel"]]}, {"caption": "Markdown and LaTeX in text cells", "head": ["You type", "You get"], "rows": [["<code># Title<\/code>, <code>## Section<\/code>", "Headings, large to small"], ["<code>**word**<\/code>", "<b>bold<\/b>"], ["<code>*word*<\/code> or <code>_word_<\/code>", "<i>italic<\/i>"], ["<code>`code`<\/code>", "inline code"], ["<code>- item<\/code>", "a bullet point"], ["<code>[text](https://...)<\/code>", "a link"], ["<code>$x^2$<\/code>", "maths inside a sentence"], ["<code>$$ a^2 + b^2 = c^2 $$<\/code>", "maths on its own centred line"]]}], "cells": [{"label": "Last value is shown", "code": "daily_sales = [120, 95, 210, 180]\nsum(daily_sales)", "saved": {"stdout": "", "value": "605", "error": null}}], "trap": "Running cells out of order. A variable can still exist in the kernel after you delete the cell that made it. Before you hand in, use <b>Kernel &gt; Restart &amp; Run All<\/b> to check the notebook works from top to bottom."}, {"id": "indent", "title": "Indentation and scopes", "summary": "Python uses indentation to mark a scope: lines that belong together. A colon opens a scope and 4 spaces mark what's inside it.", "bullets": ["The Tab key adds 4 spaces in Jupyter. Other editors may insert a real tab character, <code>\\t<\/code>, so be careful when you switch.", "Scopes can be nested, and <code>else<\/code> runs when the <code>if<\/code> condition is false.", "Booleans are <code>True<\/code> and <code>False<\/code>. Everything in Python is case-sensitive.", "<code>pass<\/code> does nothing, which is handy as a placeholder. Lines starting with <code>#<\/code> are comments, and their indentation doesn't matter.", "Multi-word names use <code>snake_case<\/code>.", "Other languages end lines with <code>;<\/code>. Python uses a new line, but you <i>can<\/i> put two statements on one line with a semicolon."], "cells": [{"label": "From the lecture", "code": "if True:\n    True\nelse:\n    False", "saved": {"stdout": "", "value": null, "error": null}}, {"label": "Nested scopes", "code": "if True:\n    if False:\n        pass\n    else:\n        print(\"inner else ran\")\nprint(\"back at the top level\")", "saved": {"stdout": "inner else ran\nback at the top level\n", "value": null, "error": null}}, {"label": "Semicolons", "code": "print(True); print(False)", "saved": {"stdout": "True\nFalse\n", "value": null, "error": null}}], "note": "The first cell shows no output. Its last statement is an <code>if<\/code> block, not a value, so Jupyter has nothing to display."}, {"id": "cond", "title": "Conditionals", "summary": "A conditional runs a scope only when its condition is True.", "bullets": ["Structure: the keyword <code>if<\/code>, a condition, a colon, then an indented scope.", "<code>elif<\/code> has its own condition. It runs only if everything above was False and its condition is True.", "<code>else<\/code> has no condition and catches whatever is left.", "Combine conditions with <code>and<\/code>, <code>or<\/code> and <code>not<\/code>, following classical logic."], "tables": [{"caption": "How and, or, not combine", "head": ["Expression", "Result"], "rows": [["<code>True and False<\/code>", "<code>False<\/code> (both must be true)"], ["<code>True or False<\/code>", "<code>True<\/code> (one is enough)"], ["<code>not True<\/code>", "<code>False<\/code>"], ["<code>not (True and False)<\/code>", "<code>True<\/code>"]]}], "cells": [{"label": "Data example", "code": "sales = 180\ntarget = 150\nif sales >= 2 * target:\n    print(\"target smashed\")\nelif sales >= target and not sales == 0:\n    print(\"target met\")\nelse:\n    print(\"below target\")", "saved": {"stdout": "target met\n", "value": null, "error": null}}], "data": "Conditionals are how you flag data: above target, missing value, outlier. Later in the course, libraries apply the same test to a whole column at once."}, {"id": "vars", "title": "Variables, strings and numbers", "summary": "Names have no type, only data does. A variable is a label you point at a value with =, and the kernel stores that link.", "bullets": ["The name <i>Skipper<\/i> can mean a dog, a dolphin or a friend who sails. Python names work the same way.", "<code>print()<\/code> shows its argument and returns <code>None<\/code>.", "<code>int<\/code> is a whole number and <code>float<\/code> a decimal. Convert (\"cast\") with <code>int()<\/code>, <code>float()<\/code> and <code>str()<\/code>.", "Operators: <code>+ - * /<\/code>, plus <code>//<\/code> integer division, <code>%<\/code> remainder and <code>**<\/code> power. <code>1e3<\/code> is scientific notation and gives a float.", "Strings can't be changed. Any change returns a modified <i>copy<\/i>, which matters if your string is a whole database.", "Build text with f-strings: an <code>f<\/code> before the quotes, and Python code inside <code>{ }<\/code>."], "cells": [{"label": "Names have no type", "code": "skipper = \"a dog\"\nprint(type(skipper))\nskipper = 3.5\nprint(type(skipper))", "saved": {"stdout": "<class 'str'>\n<class 'float'>\n", "value": null, "error": null}}, {"label": "From the lecture", "code": "text = \"five divided by two is\"\nprint(text, 5/2)\nprint(text, 5//2, \"with rest\", 5%2)\nprint(\"scientific notation:\", 1e3, 1e-3)\nprint(f\"The square of 5 is {5**2}\")", "saved": {"stdout": "five divided by two is 2.5\nfive divided by two is 2 with rest 1\nscientific notation: 1000.0 0.001\nThe square of 5 is 25\n", "value": null, "error": null}}, {"label": "Data example", "code": "units_sold = 3.7\nunits_sold = int(units_sold)\nrevenue = units_sold * 19.90\nprint(units_sold, revenue)\nprint(f\"Average price: {revenue / units_sold:.2f} CHF\")", "saved": {"stdout": "3 59.699999999999996\nAverage price: 19.90 CHF\n", "value": null, "error": null}}, {"label": "Strings are copied, not changed", "code": "name = \"python\"\nloud = name.upper()\nprint(name, loud)\nprint(name[0], name[-1], name[0:3])", "saved": {"stdout": "python PYTHON\np n pyt\n", "value": null, "error": null}}], "trap": "<code>int(3.7)<\/code> cuts to 3, it does not round. Floats are approximate too: 3 × 19.90 prints as 59.699999999999996. Format with <code>:.2f<\/code> or use <code>round()<\/code> when you report numbers."}, {"id": "ds", "title": "Basic data structures", "summary": "Four built-in containers hold many values. You'll use lists most of the time.", "bullets": ["Elements can be of different types, in all four structures.", "Positions start at <b>0<\/b>, and negative positions count from the end.", "Dictionaries are accessed by key, and a key can be almost anything.", "You can assign several variables at once: <code>a, b = ['first', 'second']<\/code>."], "tables": [{"caption": "Which one to use", "head": ["Structure", "Write it as", "Ordered", "Changeable", "Duplicates", "Typical data use"], "rows": [["list", "<code>[1, 2]<\/code> or <code>list()<\/code>", "Yes", "Yes", "Yes", "Daily sales, a column of values"], ["tuple", "<code>(1, 2)<\/code> or <code>tuple()<\/code>", "Yes", "No", "Yes", "A fixed record, such as (lat, lon)"], ["set", "<code>{1, 2}<\/code> or <code>set()<\/code>", "No", "Yes", "No", "Unique customers, membership tests"], ["dict", "<code>{'a': 1}<\/code> or <code>dict()<\/code>", "Insertion order", "Yes", "Keys: no", "Look up a price by product name"]]}], "cells": [{"label": "Data example", "code": "daily_sales = [120, 95, 210, 180]\nstore = (\"Zurich\", 47.37, 8.54)\nregions = {\"north\", \"south\", \"north\"}\nprices = {\"apple\": 0.5, \"bread\": 2.8}\nprint(daily_sales[0], daily_sales[-1], store[0], prices[\"bread\"])\nprint(len(regions), \"unique regions\")\nprint(sorted(daily_sales))", "saved": {"stdout": "120 180 Zurich 2.8\n2 unique regions\n[95, 120, 180, 210]\n", "value": null, "error": null}}, {"label": "From the lecture", "code": "my_set = {1, 2, 1.2, True}\nprint(my_set)\nmy_set[0]", "saved": {"stdout": "{1, 2, 1.2}\n", "value": null, "error": "TypeError: 'set' object is not subscriptable"}}], "trap": "Sets have no order, so <code>my_set[0]<\/code> fails. And <code>{1, 2, 1.2, True}<\/code> keeps only 3 items, because <code>True == 1<\/code>. In the notebook, <code>sort([...])<\/code> doesn't exist: the built-in is <code>sorted([...])<\/code>."}, {"id": "loops", "title": "Loops", "summary": "while repeats while a condition stays True. for binds a variable to each value of a sequence in turn.", "bullets": ["From here on the instructor helps less and less. Finding what you need is the skill being trained, just like making your own sentences in a new language.", "What you're writing now is called <i>scripting<\/i>: small programs you hope never grow big enough to need more structure.", "<code>x += 1<\/code> means <code>x = x + 1<\/code>. Counting starts at 0 in most of Python.", "<code>range(n)<\/code> gives 0 up to n − 1. A one-line scope can follow the colon: <code>for i in range(2): print(i)<\/code>."], "cells": [{"label": "From the lecture", "code": "enter_loop = True\nloop_counter = 0\nwhile enter_loop:\n    print('loop count:', loop_counter + 1)\n    loop_counter += 1\n    if loop_counter > 3:\n        enter_loop = False", "saved": {"stdout": "loop count: 1\nloop count: 2\nloop count: 3\nloop count: 4\n", "value": null, "error": null}}, {"label": "Data example", "code": "daily_sales = [120, 95, 210, 180]\ntotal = 0\nfor day, amount in enumerate(daily_sales):\n    total += amount\n    print(\"day\", day, \"running total:\", total)", "saved": {"stdout": "day 0 running total: 120\nday 1 running total: 215\nday 2 running total: 425\nday 3 running total: 605\n", "value": null, "error": null}}], "data": "A running total, a count per category, the largest value so far: most data summaries start life as a loop like this.", "trap": "A <code>while<\/code> loop whose condition never becomes False runs forever. In Jupyter, stop it with <b>Kernel &gt; Interrupt<\/b>."}, {"id": "keywords", "title": "Reserved keywords and default library", "summary": "Keywords and built-in names already mean something. Reusing a built-in name as a variable silently breaks it.", "bullets": ["Keywords like <code>for<\/code>, <code>else<\/code> and <code>in<\/code> can't be used as names at all.", "Built-in functions like <code>sum<\/code>, <code>list<\/code> and <code>print<\/code> <i>can<\/i> be overwritten, and some have very tempting names.", "<code>dir(__builtins__)<\/code> lists every built-in. <code>type()<\/code> and <code>len()<\/code> are two you'll use constantly.", "The <b>standard library<\/b> comes with Python. Load a module with <code>import<\/code>, for example <code>math<\/code> or <code>statistics<\/code>.", "<b>Pro tip from the lecture:<\/b> errors are your friends. Make your code crash when something unexpected happens. Silent bugs, which do damage without anyone noticing, are the real enemy."], "cells": [{"label": "Built-ins and the standard library", "code": "import keyword\nimport statistics\ndaily_sales = [120, 95, 210, 180]\nprint(len(keyword.kwlist), \"keywords\")\nprint(type(daily_sales), len(daily_sales))\nprint(statistics.mean(daily_sales), statistics.median(daily_sales))", "saved": {"stdout": "35 keywords\n<class 'list'> 4\n151.25 150.0\n", "value": null, "error": null}}, {"label": "From the lecture: this breaks Python", "code": "print(\"total:\", sum([1, 2, 3]))\nsum = 0\nfor n in range(10):\n    sum += n\nprint(sum)\nsum([1, 2, 3])", "saved": {"stdout": "total: 6\n45\n", "value": null, "error": "TypeError: 'int' object is not callable"}}], "trap": "After <code>sum = 0<\/code>, the name <code>sum<\/code> points at a number, so <code>sum()<\/code> stops working in <b>every<\/b> cell, including other cells on this page. Press <b>Restart kernel<\/b> at the top to fix it, just like in Jupyter."}, {"id": "objects", "title": "Objects, methods and documentation", "summary": "Most things in Python are objects: a class describes what they store and what they can do. Methods are functions bound to an object.", "bullets": ["Call a method with a dot: <code>daily_sales.append(150)<\/code>.", "<code>dir(obj)<\/code> lists the methods available. Names starting with <code>_<\/code> are internal and you can ignore them for now.", "Read an explanation with <code>help(str.upper)<\/code> or, in Jupyter, <code>str.upper?<\/code>.", "If you ask yourself whether you need the documentation, the answer is yes. Stack Overflow shows <i>how<\/i> to fix one case, and the docs explain <i>why<\/i>, so you learn far more.", "The goal: become someone who <b>posts answers<\/b> on Stack Overflow."], "cells": [{"label": "Exploring a string", "code": "methods = [m for m in dir(\"text\") if not m.startswith(\"_\")]\nprint(len(methods), \"methods, for example:\", methods[:6])\nprint(str.upper.__doc__)", "saved": {"stdout": "47 methods, for example: ['capitalize', 'casefold', 'center', 'count', 'encode', 'endswith']\nReturn a copy of the string converted to uppercase.\n", "value": null, "error": null}}, {"label": "From the lecture", "code": "a = tuple(range(3))\nprint(a)\na.reverse()\nprint(a)", "saved": {"stdout": "(0, 1, 2)\n", "value": null, "error": "AttributeError: 'tuple' object has no attribute 'reverse'"}}, {"label": "Lists can change", "code": "b = list(range(3))\nb.reverse()\nprint(b)", "saved": {"stdout": "[2, 1, 0]\n", "value": null, "error": null}}], "trap": "Tuples can't be changed, so they have no methods that change them, like <code>.reverse()<\/code> or <code>.append()<\/code>. That's why the lecture example crashes."}, {"id": "func", "title": "Function definition and calling", "summary": "A function takes input, does some work and returns output. Define it with def and call it by adding parentheses after its name.", "bullets": ["Python calls anything you can call this way a <i>callable<\/i>, and the built-in <code>callable()<\/code> checks it.", "The values in the parentheses are <i>arguments<\/i>. People also say <i>parameters<\/i>, and the lecture treats them as the same.", "<code>return<\/code> sends a value back. Without it, the function returns <code>None<\/code>.", "<code>print()<\/code> only shows a value. It doesn't hand it back for you to use.", "An argument can have a default value, which is used when you leave it out."], "cells": [{"label": "From the lecture", "code": "def add_one(n):\n    n += 1\n    print(n)\n    return n\n\nb = add_one(2)\nprint(\"one more:\", b + 1)", "saved": {"stdout": "3\none more: 4\n", "value": null, "error": null}}, {"label": "Data example", "code": "def average(values):\n    return sum(values) / len(values)\n\ndef growth(old, new, as_percent=True):\n    change = (new - old) / old\n    return round(change * 100, 1) if as_percent else change\n\nprint(average([120, 95, 210, 180]))\nprint(growth(120, 180), \"%\")", "saved": {"stdout": "151.25\n50.0 %\n", "value": null, "error": null}}, {"label": "print is not return", "code": "def shout(word):\n    print(word.upper())\n\nresult = shout(\"hi\")\nprint(result)", "saved": {"stdout": "HI\nNone\n", "value": null, "error": null}}], "data": "Wrap any calculation you repeat in a function: an average, a growth rate, a cleaning step. It's the habit that turns scripts into analysis you can trust."}], "errors": [["NameError", "name 'x' is not defined", "You used a name the kernel doesn't know. Check the spelling, or run the cell that creates it."], ["TypeError", "can only concatenate str (not \"int\") to str", "Two types that don't mix, such as text + number. Convert one with int() or str()."], ["TypeError", "'int' object is not callable", "You put () after something that isn't a function, often because a built-in like sum was overwritten."], ["IndentationError", "unexpected indent", "The spaces at the start of a line don't match the scope. Use 4 spaces per level."], ["SyntaxError", "invalid syntax / expected ':'", "Python can't read the line: a missing colon, bracket or quote."], ["AttributeError", "'tuple' object has no attribute 'reverse'", "That object has no such method. Check with dir()."], ["IndexError", "list index out of range", "You asked for a position that doesn't exist. Remember positions start at 0."], ["KeyError", "'grade'", "That key isn't in the dictionary. Use .get(key, default) for a safe lookup."], ["ValueError", "invalid literal for int() with base 10: 'abc'", "The type is right but the value isn't, such as converting text that isn't a number."]], "glossary": [["Kernel", "The Python process behind a notebook that runs cells and remembers results."], ["REPL", "Read, Eval, Print Loop: read code, run it, show the result, repeat."], ["Cell", "One block of a notebook, either code or Markdown text."], ["Scope", "A group of lines that belong together, marked by indentation."], ["Boolean", "A truth value: True or False."], ["Cast", "Converting a value to another type, such as int(\"5\")."], ["Immutable", "Can't be changed after creation, like strings and tuples."], ["Iterable", "Anything a for loop can walk through, such as a list or range()."], ["Index", "The position of an element, starting at 0."], ["Method", "A function bound to an object, called with a dot."], ["Argument / parameter", "A value you pass into a function."], ["Callable", "Anything you can call with (), such as a function."], ["Silent bug", "A mistake that gives wrong results without an error message."], ["snake_case", "Naming style with lowercase words joined by underscores."]], "quiz": [{"q": "In what order does the Jupyter kernel remember your code?", "o": ["Top to bottom, as the cells appear", "The order you ran the cells", "Alphabetical by variable name", "Only the last cell you ran"], "a": 1, "why": "The kernel follows execution order. That's why the In [n] numbers matter."}, {"q": "What is the keyboard shortcut to run a cell?", "o": ["Ctrl + S", "Alt + R", "Shift + Enter", "Tab"], "a": 2, "why": "Shift + Enter runs the cell and moves to the next one."}, {"q": "What does REPL stand for?", "o": ["Run, Edit, Print, Leave", "Read, Eval, Print Loop", "Repeat Every Python Line", "Return, Evaluate, Pass, Loop"], "a": 1, "why": "The kernel reads your code, evaluates it, prints the result and loops back."}, {"q": "What does 7 // 2 give?", "o": ["3.5", "3", "1", "4"], "a": 1, "why": "// is integer division: it drops the remainder."}, {"q": "What does 7 % 2 give?", "o": ["1", "3", "3.5", "0"], "a": 0, "why": "% returns the remainder of integer division."}, {"q": "What does print() return?", "o": ["The text it printed", "True", "None", "0"], "a": 2, "why": "print() shows its argument but returns None."}, {"q": "Which structure is ordered but can't be changed?", "o": ["list", "set", "dict", "tuple"], "a": 3, "why": "Tuples are immutable lists."}, {"q": "lst = [10, 20, 30]. What is lst[-1]?", "o": ["10", "20", "30", "Error"], "a": 2, "why": "Negative positions count from the end."}, {"q": "How many items are in {1, True, 2}?", "o": ["3", "2", "1", "Error"], "a": 1, "why": "True equals 1 in Python, so the set treats them as the same value."}, {"q": "What does range(4) produce?", "o": ["1, 2, 3, 4", "0, 1, 2, 3", "0, 1, 2, 3, 4", "4"], "a": 1, "why": "range starts at 0 and stops before the number you give."}, {"q": "Which of these is a reserved keyword?", "o": ["sum", "list", "for", "len"], "a": 2, "why": "for is a keyword. The others are built-in functions, which you can overwrite by mistake."}, {"q": "After running sum = 0, what happens with sum([1, 2])?", "o": ["It returns 3", "It returns 0", "TypeError: 'int' object is not callable", "Nothing"], "a": 2, "why": "The name sum now points to an integer, which can't be called."}, {"q": "What does a function without a return statement give back?", "o": ["0", "None", "An empty string", "The last printed value"], "a": 1, "why": "Python returns None when there is no return."}, {"q": "What does int(3.7) give?", "o": ["4", "3", "3.7", "Error"], "a": 1, "why": "int() cuts off the decimals. It does not round."}, {"q": "According to the lecture, what is the programmer's real enemy?", "o": ["Error messages", "Silent bugs", "Slow typing", "Long variable names"], "a": 1, "why": "Crashes are easy to spot and fix. Silent bugs cause damage without anyone noticing."}], "exercises": [{"t": "Even or odd", "lvl": "Easy", "task": "Store a number in <code>n<\/code> and print whether it is even or odd.", "hint": "Check the remainder with % 2.", "sol": "n = 7\nif n % 2 == 0:\n    print(\"even\")\nelse:\n    print(\"odd\")", "saved": {"stdout": "odd\n", "value": null, "error": null}}, {"t": "Shopping total", "lvl": "Easy", "task": "Store <code>{\"apple\": 0.5, \"bread\": 2.8, \"milk\": 1.6}<\/code> in a dict. Loop over it to print each item and the total cost.", "hint": "Use .items() to get the key and the value together.", "sol": "prices = {\"apple\": 0.5, \"bread\": 2.8, \"milk\": 1.6}\ntotal = 0\nfor item, price in prices.items():\n    print(item, price)\n    total += price\nprint(f\"Total: {total:.2f}\")", "saved": {"stdout": "apple 0.5\nbread 2.8\nmilk 1.6\nTotal: 4.90\n", "value": null, "error": null}}, {"t": "Unique customers", "lvl": "Easy", "task": "Remove duplicates from <code>[3, 1, 3, 2, 1]<\/code> and get them back as a sorted list.", "hint": "set() removes duplicates. sorted() turns any collection into a sorted list.", "sol": "ids = [3, 1, 3, 2, 1]\nprint(sorted(set(ids)))", "saved": {"stdout": "[1, 2, 3]\n", "value": null, "error": null}}, {"t": "Grade function", "lvl": "Medium", "task": "Write <code>get_grade(score)<\/code> that returns \"A\" (90+), \"B\" (70+), \"C\" (50+) or \"F\". Apply it to <code>[95, 72, 58, 41]<\/code>.", "hint": "if / elif / else inside the function, each branch with return. Then a for loop over the list.", "sol": "def get_grade(score):\n    if score >= 90:\n        return \"A\"\n    elif score >= 70:\n        return \"B\"\n    elif score >= 50:\n        return \"C\"\n    else:\n        return \"F\"\n\nfor s in [95, 72, 58, 41]:\n    print(s, get_grade(s))", "saved": {"stdout": "95 A\n72 B\n58 C\n41 F\n", "value": null, "error": null}}, {"t": "Word counter", "lvl": "Medium", "task": "Split a sentence into words and count how often each word appears, using a dict.", "hint": "Start with an empty dict. For each word, use counts.get(word, 0) + 1.", "sol": "text = \"the data and the code and the notes\"\ncounts = {}\nfor word in text.split():\n    counts[word] = counts.get(word, 0) + 1\nprint(counts)", "saved": {"stdout": "{'the': 3, 'data': 1, 'and': 2, 'code': 1, 'notes': 1}\n", "value": null, "error": null}}, {"t": "Sales summary", "lvl": "Medium", "task": "For <code>daily_sales = [120, 95, 210, 180]<\/code>, print the total, the average, the best day's position and how many days beat 150.", "hint": "sum(), len(), max() and .index() do most of the work. Count with a loop and an if.", "sol": "daily_sales = [120, 95, 210, 180]\nprint(\"total:\", sum(daily_sales))\nprint(\"average:\", sum(daily_sales) / len(daily_sales))\nprint(\"best day:\", daily_sales.index(max(daily_sales)))\nabove = 0\nfor s in daily_sales:\n    if s > 150:\n        above += 1\nprint(\"days above 150:\", above)", "saved": {"stdout": "total: 605\naverage: 151.25\nbest day: 2\ndays above 150: 2\n", "value": null, "error": null}}, {"t": "Savings goal", "lvl": "Harder", "task": "You save CHF 350 a month and earn 0.5% interest a month. Use a <code>while<\/code> loop to find how many months it takes to reach CHF 5,000.", "hint": "Each month: balance = balance * 1.005 + 350, and add 1 to a month counter.", "sol": "balance = 0\nmonths = 0\nwhile balance < 5000:\n    balance = balance * 1.005 + 350\n    months += 1\nprint(months, round(balance, 2))", "saved": {"stdout": "14 5062.48\n", "value": null, "error": null}}], "assignment": ["Create text cells below the questions and write Python to answer.", "Write Python three times: in bold, in italic and inside LaTeX.", "Write the linear equation y=mx+q in the $$ ... $$ LaTeX environment.", "Find out what happens when you mix indentation (2 spaces and 3 spaces) in one if block.", "Write an if / elif / else conditional using only Booleans, combined with and, or and not.", "Test each feature of variables, strings and numbers with your own variations.", "Make a dict with two entries: one key points to a list, the other to a set containing a tuple.", "Do one multiple assignment with 2 names on the left and a list of 3+ items on the right. What happens?", "Run the sum-overwriting code, then try summing a list again. What happens?", "Fix that code so you can sum 0 to 9 without breaking sum(). Restart the kernel first and test sum() afterwards.", "Explore the methods of a list and call two whose purpose you can guess.", "Look up the Python list documentation and try two more methods from it.", "Write a function that returns the square of a number, then test it.", "Use callable() on one callable object and one non-callable object."], "kernel": "import ast, io, contextlib\n\ndef _input_blocked(prompt=\"\"):\n    raise RuntimeError(\"input() isn't available on this page. Set the value directly, for example n = 7\")\n\ndef run_cell(src, g):\n    \"\"\"Run src in namespace g like a Jupyter cell. Returns (stdout, last_value_repr_or_None, error_or_None).\"\"\"\n    buf = io.StringIO()\n    shown, err = None, None\n    g.setdefault(\"input\", _input_blocked)\n    with contextlib.redirect_stdout(buf):\n        try:\n            tree = ast.parse(src, \"<cell>\")\n            last = None\n            if tree.body and isinstance(tree.body[-1], ast.Expr):\n                last = ast.Expression(tree.body.pop().value)\n            exec(compile(tree, \"<cell>\", \"exec\"), g)\n            if last is not None:\n                v = eval(compile(last, \"<cell>\", \"eval\"), g)\n                if v is not None:\n                    shown = repr(v)\n        except SyntaxError as e:\n            err = f\"{type(e).__name__}: {e.msg} (line {e.lineno})\"\n        except Exception as e:\n            err = f\"{type(e).__name__}: {e}\"\n    return buf.getvalue(), shown, err\n"}</script>
+<script>
+(function () {
+  var D = JSON.parse(document.getElementById("course-data").textContent);
+  var PYODIDE = "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/";
+
+  var WEEKS = [
+    { n: 1, title: "Crash course in Python", note: "Jupyter, scopes, data structures, loops, functions", ready: true },
+    { n: 2, title: "Week 2", note: "Announced in Week 1: zip() and map()", ready: false }
+  ];
+  for (var w = 3; w <= 12; w++) WEEKS.push({ n: w, title: "Week " + w, note: "Not added yet", ready: false });
+
+  var store = {
+    get: function (k, d) { try { var v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  };
+  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+  /* ---------- highlighter ---------- */
+  var KW = /^(def|return|if|elif|else|for|while|in|and|or|not|pass|True|False|None|import|from|as|break|continue|is|lambda|class|try|except|with)$/;
+  var BI = /^(print|sum|len|type|int|float|str|range|sorted|max|min|tuple|list|set|dict|input|enumerate|round|callable|dir|help|zip|map|abs)$/;
+  function hl(code) {
+    var re = /(#[^\n]*)|(f?"(?:[^"\\\n]|\\.)*"|f?'(?:[^'\\\n]|\\.)*')|(\b\d+(?:\.\d+)?(?:e-?\d+)?\b)|([A-Za-z_]\w*)/g, out = "", last = 0, m;
+    while ((m = re.exec(code))) {
+      out += esc(code.slice(last, m.index));
+      var t = m[0];
+      if (m[1]) out += '<span class="tok-c">' + esc(t) + "</span>";
+      else if (m[2]) out += '<span class="tok-s">' + esc(t) + "</span>";
+      else if (m[3]) out += '<span class="tok-n">' + t + "</span>";
+      else if (KW.test(t)) out += '<span class="tok-k">' + t + "</span>";
+      else if (BI.test(t) && code.charAt(re.lastIndex) === "(") out += '<span class="tok-f">' + t + "</span>";
+      else out += esc(t);
+      last = re.lastIndex;
+    }
+    return out + esc(code.slice(last));
+  }
+
+  /* ---------- kernel (Pyodide, loaded on first Run) ---------- */
+  var kernel = { state: "idle", py: null, loading: null, count: 0 };
+  var cells = [];
+  function setStatus(s, text) {
+    kernel.state = s;
+    var el = document.getElementById("kstat");
+    if (!el) return;
+    el.dataset.s = s;
+    el.querySelector("span.t").textContent = text;
+  }
+  function statusText() {
+    return { idle: "Python: starts on first Run", loading: "Python: starting…", ready: "Python 3.12: ready", busy: "Python: running…", failed: "Python unavailable: showing saved outputs" }[kernel.state];
+  }
+  function loadKernel() {
+    if (kernel.loading) return kernel.loading;
+    setStatus("loading", "Python: starting… (first time takes a few seconds)");
+    kernel.loading = new Promise(function (resolve, reject) {
+      var s = document.createElement("script");
+      s.src = PYODIDE + "pyodide.js";
+      s.onload = function () {
+        window.loadPyodide({ indexURL: PYODIDE }).then(function (py) {
+          py.runPython(D.kernel);
+          py.runPython("_G = {}");
+          kernel.py = py;
+          setStatus("ready", statusText());
+          resolve(py);
+        }).catch(reject);
+      };
+      s.onerror = function () { reject(new Error("load failed")); };
+      document.head.appendChild(s);
+    }).catch(function (e) { setStatus("failed", statusText()); throw e; });
+    return kernel.loading;
+  }
+  function restartKernel() {
+    kernel.count = 0;
+    if (kernel.py) kernel.py.runPython("_G = {}");
+    cells.forEach(function (c) { c.prompt.innerHTML = "In [&nbsp;]:"; c.outRow.hidden = true; });
+    var b = document.getElementById("restart");
+    if (b) { b.textContent = "Kernel restarted"; setTimeout(function () { b.textContent = "Restart kernel"; }, 1400); }
+  }
+
+  function renderOutput(c, r, note) {
+    c.outBox.innerHTML = "";
+    function add(cls, text) { var s = document.createElement("span"); s.className = cls; s.textContent = text; c.outBox.appendChild(s); }
+    if (r.stdout) add("std", r.stdout.replace(/\n$/, ""));
+    if (r.value != null) add("val", r.value);
+    if (r.error) add("err", r.error);
+    if (!r.stdout && r.value == null && !r.error) add("empty", "No output: the last statement wasn't a value.");
+    if (note) add("note", note);
+    c.outPrompt.textContent = r.value != null ? "Out[" + kernel.count + "]:" : "";
+    c.outRow.hidden = false;
+  }
+
+  function runCell(c) {
+    kernel.count += 1;
+    var n = kernel.count;
+    c.prompt.textContent = "In [*]:";
+    var code = c.ta.value;
+    loadKernel().then(function (py) {
+      setStatus("busy", statusText());
+      setTimeout(function () {
+        try {
+          py.globals.set("_SRC", code);
+          var res = py.runPython("run_cell(_SRC, _G)");
+          var arr = res.toJs(); res.destroy();
+          c.prompt.textContent = "In [" + n + "]:";
+          renderOutput(c, { stdout: arr[0], value: arr[1] == null ? null : arr[1], error: arr[2] == null ? null : arr[2] });
+        } catch (e) {
+          c.prompt.textContent = "In [" + n + "]:";
+          renderOutput(c, { stdout: "", value: null, error: String(e && e.message || e).split("\n").filter(Boolean).pop() });
+        }
+        setStatus("ready", statusText());
+      }, 10);
+    }).catch(function () {
+      c.prompt.textContent = "In [" + n + "]:";
+      if (code === c.original) renderOutput(c, c.saved, "Saved output: Python couldn't start in this browser.");
+      else renderOutput(c, { stdout: "", value: null, error: null }, "Python couldn't start in this browser, so edited code can't run here. Press Reset to see the saved output.");
+    });
+  }
+
+  function makeCell(host, spec, opts) {
+    opts = opts || {};
+    host.classList.add("cell");
+    host.innerHTML =
+      (spec.label ? '<div class="cell-label">' + esc(spec.label) + "</div>" : "") +
+      '<div class="prompt">In [&nbsp;]:</div>' +
+      '<div class="code"><div class="editor"><pre aria-hidden="true"></pre>' +
+      '<textarea spellcheck="false" autocapitalize="off" autocomplete="off" wrap="off" aria-label="Python code, editable. Shift+Enter runs it."></textarea></div>' +
+      '<div class="cell-tools"><button class="reset" type="button" hidden>Reset</button>' +
+      '<button class="run" type="button" title="Run (Shift+Enter)"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M1 0l9 5-9 5z"/></svg>Run</button></div></div>' +
+      '<div class="out-row" hidden><div class="prompt outp"></div><div class="output"></div></div>';
+    var c = {
+      prompt: host.querySelector(".prompt"), pre: host.querySelector("pre"), ta: host.querySelector("textarea"),
+      outRow: host.querySelector(".out-row"), outBox: host.querySelector(".output"), outPrompt: host.querySelector(".outp"),
+      reset: host.querySelector(".reset"), original: spec.code, saved: spec.saved
+    };
+    function sync() {
+      c.pre.innerHTML = hl(c.ta.value) + "\n";
+      c.ta.style.height = "auto";
+      c.ta.style.height = c.ta.scrollHeight + "px";
+      c.reset.hidden = c.ta.value === c.original;
+    }
+    c.ta.value = spec.code;
+    c.ta.rows = spec.code.split("\n").length;
+    c.ta.addEventListener("input", sync);
+    c.ta.addEventListener("scroll", function () { c.pre.scrollLeft = c.ta.scrollLeft; });
+    c.ta.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && (e.shiftKey || e.ctrlKey)) { e.preventDefault(); runCell(c); }
+      else if (e.key === "Tab" && !e.shiftKey && !c.escaped) {
+        e.preventDefault();
+        var s = c.ta.selectionStart, en = c.ta.selectionEnd;
+        c.ta.value = c.ta.value.slice(0, s) + "    " + c.ta.value.slice(en);
+        c.ta.selectionStart = c.ta.selectionEnd = s + 4; sync();
+      } else if (e.key === "Escape") { c.escaped = true; }
+      else c.escaped = false;
+    });
+    c.ta.addEventListener("blur", function () { c.escaped = false; });
+    host.querySelector(".run").addEventListener("click", function () { runCell(c); });
+    c.reset.addEventListener("click", function () { c.ta.value = c.original; sync(); c.ta.focus(); });
+    cells.push(c);
+    requestAnimationFrame(sync);
+    sync();
+    return c;
+  }
+
+  /* ---------- views ---------- */
+  var view = document.getElementById("view");
+  var toc = document.getElementById("toc");
+  var weeksNav = document.getElementById("weeks");
+  var learned = store.get("dap-learned-w1", {});
+
+  function renderWeeksNav(current) {
+    weeksNav.innerHTML = WEEKS.map(function (w) {
+      return '<a href="#week-' + w.n + '" class="' + (w.ready ? "ready" : "locked") + (w.n === current ? " current" : "") + '" aria-label="Week ' + w.n + (w.ready ? "" : ", not added yet") + '"' + (w.n === current ? ' aria-current="page"' : "") + ">" + w.n + "</a>";
+    }).join("");
+  }
+
+  function kernelBar() {
+    return '<div class="kernelbar" role="region" aria-label="Python kernel"><span class="kstat" id="kstat" data-s="' + kernel.state + '"><span class="dot"></span><span class="t">' + statusText() + "</span></span>" +
+      '<span class="khelp">Every cell is editable and runs real Python. Shift + Enter runs, Tab indents (Esc then Tab leaves the cell). All cells share one kernel, like Jupyter.</span>' +
+      '<button class="kbtn" type="button" id="restart">Restart kernel</button></div>';
+  }
+
+  function tableHTML(t) {
+    return '<div class="tbl"><table>' + (t.caption ? "<caption>" + esc(t.caption) + "</caption>" : "") +
+      "<thead><tr>" + t.head.map(function (h) { return "<th scope=\"col\">" + h + "</th>"; }).join("") + "</tr></thead><tbody>" +
+      t.rows.map(function (r) { return "<tr>" + r.map(function (x) { return "<td>" + x + "</td>"; }).join("") + "</tr>"; }).join("") + "</tbody></table></div>";
+  }
+
+  function renderWeek1() {
+    cells = [];
+    kernel.count = 0;
+    if (kernel.py) kernel.py.runPython("_G = {}");
+    var h = '<header class="hero"><p class="eyebrow">Week 1 of 12 · Crash course in Python</p>' +
+      '<h1>Learn the Python behind <span class="hl">data analytics</span></h1>' +
+      '<p class="lede">The ten ideas from the first lecture, with the instructor\'s own examples, data examples, and every trap the lecture warns about. Edit any cell and run it: it\'s real Python, right in your browser.</p>' +
+      '<div class="meta"><span class="chip hot">Pass mark: 66% per assignment</span><span class="chip">10 topics</span><span class="chip">' + D.quiz.length + '-question quiz</span><span class="chip">' + D.exercises.length + ' practice exercises</span><span class="chip">14 graded questions</span></div></header>' +
+      kernelBar() + '<div id="topics"></div>';
+    h += '<section class="topic" id="w1-errors" aria-labelledby="w1-errors-h"><div class="topic-head"><span class="topic-num">Help</span><h2 id="w1-errors-h">Reading error messages</h2></div>' +
+      '<p class="summary">Read a traceback from the bottom up: the last line names the error and says what went wrong. These are the ones you\'ll meet most in Week 1.</p>' +
+      tableHTML({ head: ["Error", "Example message", "What it usually means"], rows: D.errors.map(function (e) { return ["<code>" + e[0] + "</code>", "<code>" + esc(e[1]) + "</code>", esc(e[2])]; }) }) + "</section>";
+    h += '<section class="topic" id="w1-glossary" aria-labelledby="w1-glossary-h"><div class="topic-head"><span class="topic-num">Words</span><h2 id="w1-glossary-h">Glossary</h2></div>' +
+      '<p class="summary">The terms from this week, in plain words.</p>' +
+      tableHTML({ head: ["Term", "Meaning"], rows: D.glossary.map(function (g) { return ["<b>" + esc(g[0]) + "</b>", esc(g[1])]; }) }) + "</section>";
+    h += '<section class="topic" id="w1-quiz" aria-labelledby="w1-quiz-h"><div class="topic-head"><span class="topic-num">Check</span><h2 id="w1-quiz-h">Quick quiz</h2></div>' +
+      '<p class="summary">' + D.quiz.length + ' questions on Week 1. Pick an answer to see whether it\'s right and why.</p><div id="quizBody"></div>' +
+      '<div class="score"><span>Score <strong id="scoreNum">0</strong> / ' + D.quiz.length + '</span><span id="scoreMsg"></span><button class="btn" type="button" id="quizReset">Reset quiz</button></div></section>';
+    h += '<section class="topic" id="w1-practice" aria-labelledby="w1-practice-h"><div class="topic-head"><span class="topic-num">Practice</span><h2 id="w1-practice-h">Practice exercises</h2></div>' +
+      '<p class="summary">Extra data exercises, separate from the graded questions. Try each one yourself first, then the hint, and only then the solution, which you can run and change.</p><div id="exBody"></div></section>';
+    h += '<section class="topic" id="w1-assignment" aria-labelledby="w1-assignment-h"><div class="topic-head"><span class="topic-num">Graded</span><h2 id="w1-assignment-h">Assignment checklist</h2></div>' +
+      '<p class="summary">The 14 questions from the Week 1 notebook. Answer them in your own notebook and tick them off here. You need 66% correct, and some answers are worth more than others. Never leave one empty: a partial answer can still earn points.</p><ul class="checklist" id="asgList"></ul></section>';
+    h += '<section class="topic" id="w1-next" aria-labelledby="w1-next-h"><div class="topic-head"><span class="topic-num">Next</span><h2 id="w1-next-h">Before Week 2</h2></div>' +
+      '<p class="summary">You can\'t learn Python in a day, but you can see everything you need in a couple of days and then practise for weeks. Memorise like a new language, and have fun with it.</p>' +
+      '<ul><li>Bookmark the <a href="https://docs.python.org/3/library/functions.html">built-in functions page</a>. You already know many of them, and others are easy to guess: try <code>max()</code> on a list of numbers.</li>' +
+      '<li>Week 2 was announced to cover <code>zip()</code> and <code>map()</code>.</li>' +
+      '<li>Each week the instructor helps less. Reading the docs becomes your main skill.</li></ul>' +
+      '<footer>Week 1 is based on the notebook "Data Analytics in Python, Lecture 01: Crash course on Python programming". Saved outputs were produced by running every cell in Python. <span lang="fa" dir="rtl">تحلیل داده با پایتون</span> is Persian for "data analysis with Python".</footer></section>';
+    view.innerHTML = h;
+
+    var topicsEl = document.getElementById("topics");
+    var tocHTML = "";
+    D.topics.forEach(function (t, i) {
+      var num = String(i + 1).padStart(2, "0"), id = "w1-" + t.id;
+      var s = document.createElement("section");
+      s.className = "topic"; s.id = id; s.setAttribute("aria-labelledby", id + "-h");
+      var html = '<div class="topic-head"><span class="topic-num">' + num + '</span><h2 id="' + id + '-h">' + t.title + "</h2></div>" +
+        '<p class="summary">' + t.summary + "</p><ul>" + t.bullets.map(function (b) { return "<li>" + b + "</li>"; }).join("") + "</ul>";
+      (t.tables || []).forEach(function (tb) { html += tableHTML(tb); });
+      t.cells.forEach(function (_, j) { html += '<div data-c="' + j + '"></div>'; });
+      if (t.note) html += '<div class="callout note"><span class="tag">Note</span><div>' + t.note + "</div></div>";
+      if (t.trap) html += '<div class="callout trap"><span class="tag">Trap</span><div>' + t.trap + "</div></div>";
+      if (t.data) html += '<div class="callout data"><span class="tag">In data work</span><div>' + t.data + "</div></div>";
+      html += '<div class="topic-foot"><button class="learn" type="button" aria-pressed="false" data-id="' + t.id + '">Mark as learned</button></div>';
+      s.innerHTML = html;
+      topicsEl.appendChild(s);
+      t.cells.forEach(function (c, j) { makeCell(s.querySelector('[data-c="' + j + '"]'), c); });
+      s.querySelector(".learn").addEventListener("click", function () { learned[t.id] = !learned[t.id]; store.set("dap-learned-w1", learned); paintLearned(); });
+      tocHTML += '<li><a href="#' + id + '" data-id="' + t.id + '"><span class="n">' + num + "</span><span>" + t.title + '</span><span class="tick" aria-hidden="true"></span></a></li>';
+    });
+    tocHTML += '<li class="sep" aria-hidden="true"></li>';
+    [["errors", "Reading error messages", "?!"], ["glossary", "Glossary", "Aa"], ["quiz", "Quick quiz", "✓"], ["practice", "Practice exercises", "Ex"], ["assignment", "Assignment checklist", "Q"], ["next", "Before Week 2", "→"]].forEach(function (x) {
+      tocHTML += '<li><a href="#w1-' + x[0] + '"><span class="n">' + x[2] + "</span><span>" + x[1] + "</span><span></span></a></li>";
+    });
+    toc.innerHTML = tocHTML;
+    document.querySelector(".progress").style.display = "";
+    paintLearned();
+
+    renderQuiz();
+    var exBody = document.getElementById("exBody");
+    D.exercises.forEach(function (e, i) {
+      var d = document.createElement("details");
+      d.className = "ex";
+      d.innerHTML = "<summary>" + (i + 1) + ". " + esc(e.t) + '<span class="ex-level">' + e.lvl + "</span></summary>" +
+        '<div class="ex-body"><p>' + e.task + "</p>" +
+        '<button type="button" class="reveal" data-k="h">Show hint</button><button type="button" class="reveal" data-k="s">Show solution</button>' +
+        '<p class="hint" hidden><b>Hint:</b> ' + esc(e.hint) + '</p><div class="sol" hidden></div></div>';
+      exBody.appendChild(d);
+      var made = false;
+      d.querySelectorAll(".reveal").forEach(function (b) {
+        b.addEventListener("click", function () {
+          var el = d.querySelector(b.dataset.k === "h" ? ".hint" : ".sol");
+          if (b.dataset.k === "s" && !made) { makeCell(el.appendChild(document.createElement("div")), { code: e.sol, saved: e.saved, label: "Solution" }); made = true; }
+          el.hidden = !el.hidden;
+          b.textContent = (el.hidden ? "Show " : "Hide ") + (b.dataset.k === "h" ? "hint" : "solution");
+        });
+      });
+    });
+
+    var asgDone = store.get("dap-asg-w1", {});
+    var asgList = document.getElementById("asgList");
+    D.assignment.forEach(function (text, i) {
+      var li = document.createElement("li");
+      li.innerHTML = '<label for="asg' + i + '"><input type="checkbox" id="asg' + i + '"' + (asgDone[i] ? " checked" : "") + '><span class="qn">Q' + (i + 1) + "</span><span>" + esc(text) + "</span></label>";
+      asgList.appendChild(li);
+      li.querySelector("input").addEventListener("change", function (ev) { asgDone[i] = ev.target.checked; store.set("dap-asg-w1", asgDone); });
+    });
+    document.getElementById("restart").addEventListener("click", restartKernel);
+  }
+
+  function paintLearned() {
+    var n = 0;
+    D.topics.forEach(function (t) {
+      var on = !!learned[t.id]; if (on) n++;
+      var b = view.querySelector('.learn[data-id="' + t.id + '"]');
+      if (b) { b.setAttribute("aria-pressed", on ? "true" : "false"); b.textContent = on ? "Learned ✓" : "Mark as learned"; }
+      var a = toc.querySelector('a[data-id="' + t.id + '"]');
+      if (a) a.classList.toggle("done", on);
+    });
+    document.getElementById("progText").textContent = n + " / " + D.topics.length;
+    document.getElementById("progBar").style.width = (n / D.topics.length * 100) + "%";
+  }
+
+  var answers = {};
+  function renderQuiz() {
+    var qb = document.getElementById("quizBody");
+    qb.innerHTML = "";
+    answers = {};
+    D.quiz.forEach(function (item, i) {
+      var d = document.createElement("div");
+      d.className = "q";
+      d.innerHTML = '<p class="qt">' + (i + 1) + ". " + esc(item.q) + '</p><div class="opts">' +
+        item.o.map(function (o, j) { return '<button type="button" class="opt" data-j="' + j + '">' + esc(o) + "</button>"; }).join("") + '</div><p class="why" hidden></p>';
+      qb.appendChild(d);
+      d.querySelectorAll(".opt").forEach(function (b) {
+        b.addEventListener("click", function () {
+          var j = +b.dataset.j;
+          answers[i] = j === item.a;
+          d.querySelectorAll(".opt").forEach(function (x) { x.disabled = true; if (+x.dataset.j === item.a) x.classList.add("right"); });
+          if (j !== item.a) b.classList.add("wrong");
+          var w = d.querySelector(".why");
+          w.textContent = (j === item.a ? "Correct. " : "Not quite. ") + item.why;
+          w.hidden = false;
+          paintScore();
+        });
+      });
+    });
+    document.getElementById("quizReset").onclick = renderQuiz;
+    paintScore();
+  }
+  function paintScore() {
+    var total = D.quiz.length, keys = Object.keys(answers), right = keys.filter(function (k) { return answers[k]; }).length;
+    document.getElementById("scoreNum").textContent = right;
+    var need = Math.ceil(total * 0.66), pct = Math.round(right / total * 100), msg = document.getElementById("scoreMsg");
+    if (keys.length < total) msg.textContent = (total - keys.length) + " left. You need " + need + " right to reach 66%.";
+    else msg.textContent = right >= need ? "That's " + pct + "%, above the 66% pass mark." : "That's " + pct + "%. Review the topics you missed and try again.";
+  }
+
+  function renderPlaceholder(n) {
+    cells = [];
+    var w = WEEKS[n - 1];
+    view.innerHTML = '<header class="hero placeholder"><p class="eyebrow">Week ' + n + ' of 12</p>' +
+      "<h1>Week " + n + ' <span class="hl">isn\'t added yet</span></h1>' +
+      '<p class="lede">' + (n === 2 ? "Week 1 announced that this week covers <code>zip()</code> and <code>map()</code>. " : "") +
+      "This page fills in once the week's notebook is added, with notes, runnable cells, a quiz and practice exercises like Week 1.</p></header>" +
+      '<section class="topic"><div class="topic-head"><span class="topic-num">Plan</span><h2>The 12 weeks</h2></div>' +
+      '<p class="summary">Weeks with a solid border are ready. Dashed weeks are waiting for their notebook.</p><div class="plan">' +
+      WEEKS.map(function (x) {
+        return '<a href="#week-' + x.n + '" class="' + (x.ready ? "ready" : "locked") + '"><span class="wk">Week ' + String(x.n).padStart(2, "0") + "</span><b>" + esc(x.title) + '</b><span class="s">' + esc(x.note) + "</span></a>";
+      }).join("") + "</div></section>";
+    toc.innerHTML = '<li><a href="#week-1"><span class="n">01</span><span>Back to Week 1</span><span></span></a></li>';
+    document.querySelector(".progress").style.display = "none";
+  }
+
+  var shownWeek = 0;
+  function route() {
+    var h = location.hash.replace(/^#/, ""), week = 1, target = null, m;
+    if ((m = h.match(/^week-(\d+)$/))) week = Math.min(12, Math.max(1, +m[1]));
+    else if ((m = h.match(/^w(\d+)-[a-z0-9-]+$/))) { week = +m[1]; target = h; }
+    if (week !== shownWeek) {
+      shownWeek = week;
+      renderWeeksNav(week);
+      if (WEEKS[week - 1].ready) renderWeek1(); else renderPlaceholder(week);
+      if (!target) window.scrollTo(0, 0);
+    }
+    if (target) { var el = document.getElementById(target); if (el) el.scrollIntoView(); }
+  }
+  window.addEventListener("hashchange", route);
+  route();
+})();
+</script>
+</body>
+</html>
